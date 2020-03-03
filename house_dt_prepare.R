@@ -1,15 +1,16 @@
-library(dplyr)
+rm(list=ls(all.names=T))
+
+library(tidyverse)
 library(ggplot2)
 library(MASS)
-library(maps)
-library(reshape2)
 library(RColorBrewer)
 
 library(carData)
 library(car)
 library(alr4)
-library(leaps)
-library(boot)
+
+library(zipcode)
+data("zipcode")
 
 dt_location <- '/Users/nantang/Google Drive/STAT 423/Project-Proposal'
 setwd(dt_location)
@@ -84,14 +85,23 @@ ggsave("cm_pre.pdf",
        height=width/1.2)
 
 
+# zipcode clustering
+zip_city <- zipcode %>%
+  select(zipcode=zip, city) 
+
+house_dt$zipcode <- as.character(house_dt$zipcode)
+  
+house_dt <- left_join(house_dt, zip_city, by='zipcode')
+
+house_dt$city <- as.factor(house_dt$city)
+
+
 # data transform and check co-linearity
 house_dt_new <- house_dt %>% 
   mutate(room_avg_sqft = sqft_above / (bedrooms + bathrooms + 1) ) %>%
   mutate(house_age = (2015 - yr_built)) %>%
   mutate(renovated = ifelse(yr_renovated==0, 0, 1)) %>%
   select(-grade, -bedrooms, -bathrooms, -sqft_above, -zipcode, -sqft_living15, -yr_built, -yr_renovated)
-
-
 
 
 #  visualizing correlation matrix
